@@ -79,9 +79,8 @@ config = supportedStationTypes['r8s'].copy()
 config['horizon'] = 10      # минимальная высота для приема
     # Игнорировать вполеты, максимальная точка которых ниже
 config['minApogee'] = 35
-    #                    Название  Широта   Долгота  Высота в км     часовой пояс
+#                    Название  Широта   Долгота  Высота в км     часовой пояс
 station = Scheduler("r8s", LAT, LON, HEIGHT, timeZone=3, config=config)
-
 logger.info('init orbital')
 
 
