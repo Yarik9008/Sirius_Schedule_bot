@@ -223,6 +223,15 @@ async def help(message):
 смена \ добавление новой локации осуществляется написанием боту строки формата "локация: название, широта, долгота, высота" -> "локация успешно изменена \ добавлена)"''')
 
 
+# функция помощи страдающим
+@bot.message_handler(commands=['get_saved_locations_list'])
+async def get_saved_locations_list(message):
+    db_connection = sql.connect('databases/users.db')
+    cursor = db_connection.cursor()
+    saved_locations = list(map(lambda x: ', '.join(list(map(str, x))), [elem[1:] for elem in cursor.execute(f"SELECT * FROM locations WHERE user_id = {message.chat.id}").fetchall()]))
+    await bot.send_message(message.chat.id, saved_locations)
+
+
 # функция обработки текста сообщений
 @bot.message_handler(content_types=['text'])
 async def text_getter(message):
@@ -248,12 +257,10 @@ async def text_getter(message):
             except Exception as e:
                 logger.error('error in /text,название: ' + str(e))
                 await bot.send_message(message.chat.id, f"Ошибка. {e}", reply_markup=types.ReplyKeyboardRemove())
-        elif message.text.lower() in [elem[0] for elem in users_cursor.execute(f"SELECT codename FROM locations WHERE user_id = {message.chat.id}").fetchall()]:
+        elif message.text in [elem[0] for elem in users_cursor.execute(f"SELECT codename FROM locations WHERE user_id = {message.chat.id}").fetchall()]:
             try:
-                users_cursor.execute(f"UPDATE users SET current_location = '{message.text.lower()}' WHERE user_id = {message.chat.id}")
-
-                # изменение LAT LON HEIGHT
-
+                users_cursor.execute(f"UPDATE users SET current_location = '{message.text}' WHERE user_id = {message.chat.id}")
+                LAT, LON, HEIGHT = users_cursor.execute(f"SELECT latitude, longitude, height FROM locations WHERE codename = '{message.text}'").fetchone()
                 users_db_connection.commit()
                 await bot.send_message(message.chat.id, f"Местоположение для расчётов изменено на {message.text.lower()}.", reply_markup=types.ReplyKeyboardRemove())
             except Exception as e:
@@ -276,10 +283,10 @@ async def text_getter(message):
                     users_cursor.execute("INSERT INTO locations VALUES(?, ?, ?, ?, ?)", (message.chat.id, location_name, LAT, LON, HEIGHT))
                     users_db_connection.commit()
                     await bot.send_message(message.chat.id, f"Локация для расчётов добавлена и текущая изменена на {location_name}.", reply_markup=types.ReplyKeyboardRemove())
-                    station = Scheduler("l2s", LAT, LON, HEIGHT, timeZone=3)
+                    station = Scheduler(users_cursor.execute(f"SELECT current_station FROM users WHERE user_id = {message.chat.id}").fetchone()[0], LAT, LON, HEIGHT, timeZone=3)
                 else:
                     await bot.send_message(message.chat.id, f"Локация для расчётов изменена на {location_name}.", reply_markup=types.ReplyKeyboardRemove())
-                    station = Scheduler("l2s", LAT, LON, HEIGHT, timeZone=3)
+                    station = Scheduler(users_cursor.execute(f"SELECT current_station FROM users WHERE user_id = {message.chat.id}").fetchone()[0], LAT, LON, HEIGHT, timeZone=3)
             except Exception as e:
                 logger.error('error in /text,локация: ' + str(e))
         users_db_connection.close()
