@@ -1,8 +1,8 @@
 при первом запуске, бот просит кинуть локацию и назвать ее. дальше - команды:
-/schedule - расчет расписания для стандартных параметров (конфиги оригинальные от Лоретт, без уведомлений)
+/schedule - расчет расписания для стандартных параметров ('r8s', координаты как в сочи были, конфиги оригинальные от Лоретт, без уведомлений)
 /turn_on_notifications - включить уведомления
 /turn_off_notifications - выключить уведомления
-/use_Lorett_station_config - использовать оригинальные конфиги станций из библиотеки
+/use_lorett_station_config - использовать оригинальные конфиги станций из библиотеки
 /use_user_station_config - использовать пользовательские конфиги станций
 /echo - простой чек, жив\мертв бот
 /get_saved_locations_list - список сохраненных локаций
@@ -14,7 +14,7 @@
 schedule - get the schedule of passes
 turn_on_notifications - turn on notifications
 turn_off_notifications - turn off notifications
-use_Lorett_station_config - use the original station configs
+use_lorett_station_config - use the original station configs
 use_user_station_config - use user's station configs
 echo - check the connection
 get_saved_locations_list - get the list of saved locations
