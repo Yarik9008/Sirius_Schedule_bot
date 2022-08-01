@@ -154,7 +154,7 @@ async def turn_off_notifications(message):
 
 
 # функция смены конфигов станций
-@bot.message_handler(commands=['use_Lorett_station_config'])
+@bot.message_handler(commands=['use_lorett_station_config'])
 async def use_Lorett_station_config(message):
     try:
         db_connection = sql.connect('databases/users.db')
