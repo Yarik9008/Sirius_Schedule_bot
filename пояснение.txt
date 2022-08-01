@@ -2,16 +2,19 @@
 /schedule - расчет расписания для стандартных параметров ('r8s', координаты как в сочи были, конфиги оригинальные от Лоретт, без уведомлений)
 /turn_on_notifications - включить уведомления
 /turn_off_notifications - выключить уведомления
-/use_lorett_station_config - использовать оригинальные конфиги станций из библиотеки
+/use_Lorett_station_config - использовать оригинальные конфиги станций из библиотеки
 /use_user_station_config - использовать пользовательские конфиги станций
 /echo - простой чек, жив\мертв бот
+/get_saved_locations_list - список сохраненных локаций
 
-смена станции для расчетов осуществляется просто написанием названия станции боту, например: "c4s" -> Станция для расчетов успешно изменена"
+смена станции для расчетов осуществляется просто написанием названия станции боту, например: "c4s" -> "Станция для расчетов успешно изменена"
 смена \ добавление новой локации осуществляется написанием боту строки формата "локация: название, широта, долгота, высота" -> "локация успешно изменена \ добавлена"
+также, выбрать локацию для расчётов из имеющихся в бд можно, просто написав боту ее codename -> "Местоположение для расчётов изменено на codename."
 
 schedule - get the schedule of passes
 turn_on_notifications - turn on notifications
 turn_off_notifications - turn off notifications
-use_lorett_station_config - use the original station configs
+use_Lorett_station_config - use the original station configs
 use_user_station_config - use user's station configs
 echo - check the connection
+get_saved_locations_list - get the list of saved locations
