@@ -8,3 +8,10 @@
 
 смена станции для расчетов осуществляется просто написанием названия станции боту, например: "c4s" -> Станция для расчетов успешно изменена"
 смена \ добавление новой локации осуществляется написанием боту строки формата "локация: название, широта, долгота, высота" -> "локация успешно изменена \ добавлена"
+
+schedule - get the schedule of passes
+turn_on_notifications - turn on notifications
+turn_off_notifications - turn off notifications
+use_lorett_station_config - use the original station configs
+use_user_station_config - use user's station configs
+echo - check the connection
