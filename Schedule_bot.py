@@ -2,6 +2,7 @@ from telebot.async_telebot import AsyncTeleBot
 from logger_lib import Schedule_bot_Logging
 from lorettOrbital.orbital import *
 from telebot import types
+from pathlib import Path
 import multiprocessing
 import sqlite3 as sql
 import schedule
@@ -16,14 +17,16 @@ sudo pip3 install LorettOrbital
 '''
 
 
-TOKEN = '5560587670:AAGyi76WNfR1QAilZosAuSLv6m_9SCGKYvI'
-debug_TOKEN = '5203174377:AAHphu6MLlOLeY09KVKBNI_f6R278_03Cvo'
+orig_TOKEN = '5560587670:AAGyi76WNfR1QAilZosAuSLv6m_9SCGKYvI'
+TOKEN = '5203174377:AAHphu6MLlOLeY09KVKBNI_f6R278_03Cvo'
 LON = 39.96655
 LAT = 43.40013
 HEIGHT = 0.01
 sST = supportedStationTypes
 logger = Schedule_bot_Logging()
 temp_coords, temp_codename = '', ''
+stations_db_path = Path.cwd() / 'databases' / 'stations.db'
+users_db_path = Path.cwd() / 'databases' / 'users.db'
 try:
     bot = AsyncTeleBot(TOKEN)
     logger.info('init telegram bot')
@@ -36,6 +39,7 @@ logger.info('init orbital')
 
 # функция обновления данных
 def auto_update():
+    global stations_db_path
     try:
         check = station.update()
         if check:
@@ -45,7 +49,7 @@ def auto_update():
     try:
         # headers: band = 'bandtype', focus(~) = float, horizon = int, kinematic = 'kinematictype',
         #          minApogee = int, radius(~) = float, sampleRate = float, satList = 'sat1;sat2;sat3'
-        db_connection = sql.connect('databases/stations.db')
+        db_connection = sql.connect(stations_db_path)
         cursor = db_connection.cursor()
         apt = ('apt', sST['apt']['band'], '', sST['apt']['horizon'], sST['apt']['kinematic'], sST['apt']['minApogee'], '', sST['apt']['sampleRate'], ';'.join(sST['apt']['satList']))
         r8s = ('r8s', sST['r8s']['band'], '', sST['r8s']['horizon'], sST['r8s']['kinematic'], sST['r8s']['minApogee'], '', sST['r8s']['sampleRate'], ';'.join(sST['r8s']['satList']))
@@ -75,10 +79,10 @@ def update_data():
 # функция получения геолокации
 @bot.message_handler(content_types=['location'])
 async def location(message):
-    global temp_coords
+    global temp_coords, users_db_path
     try:
         if message.location is not None:
-            db_connection = sql.connect('databases/users.db')
+            db_connection = sql.connect(users_db_path)
             cursor = db_connection.cursor()
             cursor.execute(f"UPDATE users SET current_location = '{message.location.latitude};{message.location.longitude}' WHERE user_id = {message.chat.id}")
             db_connection.commit()
@@ -94,7 +98,7 @@ async def location(message):
 async def start(message):
     try:
         logger.debug(f'User: {message.from_user.username} Data: {message.text}')
-        db_connection = sql.connect('databases/users.db')
+        db_connection = sql.connect(users_db_path)
         cursor = db_connection.cursor()
         user_data = [elem[0] for elem in cursor.execute("SELECT user_id FROM users").fetchall()]
         geo_keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True, one_time_keyboard=True)
@@ -126,8 +130,9 @@ async def echo(message):
 # функция включения уведомлений
 @bot.message_handler(commands=['turn_on_notifications'])
 async def turn_on_notifications(message):
+    global users_db_path
     try:
-        db_connection = sql.connect('databases/users.db')
+        db_connection = sql.connect(users_db_path)
         cursor = db_connection.cursor()
         if cursor.execute(f"SELECT notifications FROM users WHERE user_id = {message.chat.id}").fetchone() != 1:
             cursor.execute(f"UPDATE users SET notifications = 1 WHERE user_id = {message.chat.id}")
@@ -141,8 +146,9 @@ async def turn_on_notifications(message):
 # функция выключения уведомлений
 @bot.message_handler(commands=['turn_off_notifications'])
 async def turn_off_notifications(message):
+    global users_db_path
     try:
-        db_connection = sql.connect('databases/users.db')
+        db_connection = sql.connect(users_db_path)
         cursor = db_connection.cursor()
         if cursor.execute(f"SELECT notifications FROM users WHERE user_id = {message.chat.id}").fetchone() != 0:
             cursor.execute(f"UPDATE users SET notifications = 0 WHERE user_id = {message.chat.id}")
@@ -156,8 +162,9 @@ async def turn_off_notifications(message):
 # функция смены конфигов станций
 @bot.message_handler(commands=['use_lorett_station_config'])
 async def use_Lorett_station_config(message):
+    global users_db_path
     try:
-        db_connection = sql.connect('databases/users.db')
+        db_connection = sql.connect(users_db_path)
         cursor = db_connection.cursor()
         if cursor.execute(f"SELECT use_default FROM users WHERE user_id = {message.chat.id}").fetchone() != 1:
             cursor.execute(f"UPDATE users SET use_default = 1 WHERE user_id = {message.chat.id}")
@@ -171,8 +178,9 @@ async def use_Lorett_station_config(message):
 # функция смены конфигов станций
 @bot.message_handler(commands=['use_user_station_config'])
 async def use_user_station_config(message):
+    global users_db_path
     try:
-        db_connection = sql.connect('databases/users.db')
+        db_connection = sql.connect(users_db_path)
         cursor = db_connection.cursor()
         if cursor.execute(f"SELECT use_default FROM users WHERE user_id = {message.chat.id}").fetchone() != 0:
             cursor.execute(f"UPDATE users SET use_default = 0 WHERE user_id = {message.chat.id}")
@@ -186,9 +194,9 @@ async def use_user_station_config(message):
 # функция расчета расписания
 @bot.message_handler(commands=['schedule'])
 async def get_schedule(message):
-    global station
+    global station, users_db_path
     try:
-        db_connection = sql.connect('databases/users.db')
+        db_connection = sql.connect(users_db_path)
         cursor = db_connection.cursor()
         if cursor.execute(f"SELECT use_default FROM users WHERE user_id = {message.chat.id}").fetchone()[0] == 1:
             logger.debug(f'User: {message.from_user.username} Data: {message.text}')
@@ -226,7 +234,8 @@ async def help(message):
 # функция помощи страдающим
 @bot.message_handler(commands=['get_saved_locations_list'])
 async def get_saved_locations_list(message):
-    db_connection = sql.connect('databases/users.db')
+    global users_db_path
+    db_connection = sql.connect(users_db_path)
     cursor = db_connection.cursor()
     saved_locations = list(map(lambda x: ', '.join(list(map(str, x))), [elem[1:] for elem in cursor.execute(f"SELECT * FROM locations WHERE user_id = {message.chat.id}").fetchall()]))
     await bot.send_message(message.chat.id, saved_locations)
@@ -235,11 +244,11 @@ async def get_saved_locations_list(message):
 # функция обработки текста сообщений
 @bot.message_handler(content_types=['text'])
 async def text_getter(message):
-    global LAT, LON, HEIGHT, station
+    global LAT, LON, HEIGHT, station, stations_db_path, users_db_path
     if message.text is not None:
-        users_db_connection = sql.connect('databases/users.db')
+        users_db_connection = sql.connect(users_db_path)
         users_cursor = users_db_connection.cursor()
-        stations_db_connection = sql.connect('databases/stations.db')
+        stations_db_connection = sql.connect(stations_db_path)
         stations_cursor = stations_db_connection.cursor()
         if users_cursor.execute(f"SELECT use_default FROM users WHERE user_id = {message.chat.id}").fetchone()[0] == 1:
             tablename = 'Lorett_config'
@@ -298,6 +307,6 @@ if __name__ == '__main__':
         multiprocessing.set_start_method('spawn')
         schedule_process = multiprocessing.Process(target=update_data)
         schedule_process.start()
-        asyncio.run(bot.infinity_polling())
+        asyncio.run(bot.infinity_polling(request_timeout=300))
     except Exception as e:
         logger.error('error in main start: ' + str(e))
