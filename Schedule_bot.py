@@ -114,7 +114,21 @@ async def start(message):
                                     reply_markup=geo_keyboard)
         else:
             first_set = False
-            await bot.send_message(message.chat.id, "Доброго времени суток.", reply_markup=types.ReplyKeyboardRemove())
+            notifications, use_default, current_station, current_location, timezone = cursor.execute(f"SELECT notifications, use_default, current_station, current_location, timezone FROM users WHERE user_id = {message.chat.id}").fetchone()
+            if notifications == 0:
+                notifications = 'Уведомления выключены'
+            elif notifications == 1:
+                notifications = 'Уведомления включены'
+            if use_default == 1:
+                use_default = 'Используется конфигурация станций от компании Lorett'
+            elif use_default == 0:
+                use_default = 'Используется пользовательская конфигурация станций'
+            current_location += ' ' + ', '.join(list(map(str, list(cursor.execute(f"SELECT latitude, longitude, height FROM locations WHERE user_id = {message.chat.id} AND codename = '{current_location}'").fetchone())))) + ', ' + f'UTC +{timezone}'
+            if notifications and use_default and current_location and current_station:
+                everything_fine = 'возможен'
+            else:
+                everything_fine = 'не возможен'
+            await bot.send_message(message.chat.id, f"Доброго времени суток. Актуальная конфигурация:\n{notifications}\n{use_default}\nСтанция для расчетов: {current_station}\nМестоположение для расчетов: {current_location}\nРасчет пролётов спутников(/schedule) {everything_fine}.", reply_markup=types.ReplyKeyboardRemove())
         db_connection.close()
     except Exception as e:
         logger.error('error in /start: ' + str(e))
