@@ -1,20 +1,57 @@
-при первом запуске, бот просит кинуть локацию и назвать ее. дальше - команды:
-/schedule - расчет расписания для стандартных параметров ('r8s', координаты как в сочи были, конфиги оригинальные от Лоретт, без уведомлений)
-/turn_on_notifications - включить уведомления
-/turn_off_notifications - выключить уведомления
-/use_lorett_station_config - использовать оригинальные конфиги станций из библиотеки
-/use_user_station_config - использовать пользовательские конфиги станций
-/echo - простой чек, жив\мертв бот
-/get_saved_locations_list - список сохраненных локаций
-
-смена станции для расчетов осуществляется просто написанием названия станции боту, например: "c4s" -> "Станция для расчетов успешно изменена"
-смена \ добавление новой локации осуществляется написанием боту строки формата "локация: название, широта, долгота, высота" -> "локация успешно изменена \ добавлена"
-также, выбрать локацию для расчётов из имеющихся в бд можно, просто написав боту ее codename -> "Местоположение для расчётов изменено на codename."
-
-schedule - get the schedule of passes
-turn_on_notifications - turn on notifications
-turn_off_notifications - turn off notifications
-use_lorett_station_config - use the original station configs
-use_user_station_config - use user's station configs
-echo - check the connection
-get_saved_locations_list - get the list of saved locations
+aiohttp==3.8.1
+aiosignal==1.2.0
+altgraph==0.17.2
+async-timeout==4.0.2
+attrs==21.4.0
+beautifulsoup4==4.11.1
+certifi==2022.5.18.1
+cffi==1.15.0
+charset-normalizer==2.0.12
+click==7.1.2
+cycler==0.11.0
+et-xmlfile==1.1.0
+fonttools==4.34.4
+frozenlist==1.3.0
+future==0.18.2
+gevent==21.12.0
+greenlet==1.1.2
+grequests==0.6.0
+idna==3.3
+kiwisolver==1.4.4
+lorettOrbital==0.0.4
+lxml==4.9.1
+matplotlib==3.5.2
+multidict==6.0.2
+numpy==1.23.1
+openpyxl==3.0.10
+packaging==21.3
+pefile==2022.5.30
+Pillow==9.2.0
+prettytable==3.3.0
+pycparser==2.21
+pyinstaller==5.3
+pyinstaller-hooks-contrib==2022.8
+pyorbital==1.7.3
+pyparsing==3.0.9
+PyQt5==5.15.4
+pyqt5-plugins==5.15.4.2.2
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.11.0
+pyqt5-tools==5.15.4.3.2
+pyTelegramBotAPI==4.6.0
+python-dateutil==2.8.2
+python-docx==0.8.11
+python-dotenv==0.20.0
+pywin32-ctypes==0.2.0
+qt5-applications==5.15.2.2.2
+qt5-tools==5.15.2.1.2
+requests==2.27.1
+schedule==1.1.0
+scipy==1.8.1
+six==1.16.0
+soupsieve==2.3.2.post1
+urllib3==1.26.9
+wcwidth==0.2.5
+yarl==1.7.2
+zope.event==4.5.0
+zope.interface==5.4.0
