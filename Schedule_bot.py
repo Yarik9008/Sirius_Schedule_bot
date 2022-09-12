@@ -1,12 +1,12 @@
 from telebot.async_telebot import AsyncTeleBot
 from logger_lib import Schedule_bot_Logging
 from lorettOrbital.orbital import *
+from datetime import datetime
 from telebot import types
 from pathlib import Path
 import multiprocessing
 import sqlite3 as sql
 import configparser
-from datetime import datetime
 import schedule
 import asyncio
 import time
@@ -54,6 +54,8 @@ def auto_update():
         #          minApogee = int, radius(~) = float, sampleRate = float, satList = 'sat1;sat2;sat3'
         db_connection = sql.connect(stations_db_path)
         cursor = db_connection.cursor()
+        cursor.execute("DELETE FROM Lorett_config")
+        db_connection.commit()
         lex = ('lex', sST['apt']['band'], '', sST['apt']['horizon'], sST['apt']['kinematic'], sST['apt']['minApogee'], '', sST['apt']['sampleRate'], ';'.join(sST['apt']['satList']))
         r8s = ('r8s', sST['r8s']['band'], '', sST['r8s']['horizon'], sST['r8s']['kinematic'], sST['r8s']['minApogee'], '', sST['r8s']['sampleRate'], ';'.join(sST['r8s']['satList']))
         c4s = ('c4s', sST['c4s']['band'], sST['c4s']['focus'], sST['c4s']['horizon'], sST['c4s']['kinematic'], sST['c4s']['minApogee'], sST['c4s']['radius'], sST['c4s']['sampleRate'], ';'.join(sST['c4s']['satList']))
@@ -88,7 +90,7 @@ async def location(message):
     try:
         if message.location is not None:
             temp_coords = [message.location.latitude, message.location.longitude]
-            await bot.send_message(message.chat.id, "Введите название, высоту над уровнем моря и временной пояс для текущей локации.\nПример: 'название: Москва, 0.01, 3'", reply_markup=types.ReplyKeyboardRemove())
+            await bot.send_message(message.chat.id, "Введите название, высоту над уровнем моря и временной пояс для текущей локации.\nПример: название: Москва, 0.01, 3", reply_markup=types.ReplyKeyboardRemove())
     except Exception as e:
         logger.error('error in /location: ' + str(e))
 
@@ -142,6 +144,29 @@ async def echo(message):
         await bot.send_message(message.chat.id, "i'm alive!", reply_markup=types.ReplyKeyboardRemove())
     except Exception as e:
         logger.error('error in /echo: ' + str(e))
+
+
+# проверка связи
+@bot.message_handler(commands=['update_lorett_configs'])
+async def lorett_config_updater(message):
+    try:
+        db_connection = sql.connect(stations_db_path)
+        cursor = db_connection.cursor()
+        cursor.execute("DELETE FROM Lorett_config")
+        db_connection.commit()
+        lex = ('lex', sST['apt']['band'], '', sST['apt']['horizon'], sST['apt']['kinematic'], sST['apt']['minApogee'], '', sST['apt']['sampleRate'], ';'.join(sST['apt']['satList']))
+        r8s = ('r8s', sST['r8s']['band'], '', sST['r8s']['horizon'], sST['r8s']['kinematic'], sST['r8s']['minApogee'], '', sST['r8s']['sampleRate'], ';'.join(sST['r8s']['satList']))
+        c4s = ('c4s', sST['c4s']['band'], sST['c4s']['focus'], sST['c4s']['horizon'], sST['c4s']['kinematic'], sST['c4s']['minApogee'], sST['c4s']['radius'], sST['c4s']['sampleRate'], ';'.join(sST['c4s']['satList']))
+        l2s = ('l2s', sST['l2s']['band'], sST['l2s']['focus'], sST['l2s']['horizon'], sST['l2s']['kinematic'], sST['l2s']['minApogee'], sST['l2s']['radius'], sST['l2s']['sampleRate'], ';'.join(sST['apt']['satList']))
+        cursor.execute("INSERT INTO Lorett_config VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", lex)
+        cursor.execute("INSERT INTO Lorett_config VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", c4s)
+        cursor.execute("INSERT INTO Lorett_config VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", l2s)
+        cursor.execute("INSERT INTO Lorett_config VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", r8s)
+        db_connection.commit()
+        db_connection.close()
+        await bot.send_message(message.chat.id, "Конфигурация станций, предоставляемая компанией Lorett, обновлена.", reply_markup=types.ReplyKeyboardRemove())
+    except Exception as e:
+        logger.error('error in /lorett_config_updater: ' + str(e))
 
 
 # функция включения уведомлений
@@ -248,6 +273,7 @@ async def get_schedule(message):
         else:
             filename = str(datetime.now()).split(' ')
             filename = filename[0].replace('-', '') + '_' + filename[1].split('.')[0].replace(':', '') + '-' + current_station + '_' + current_location + '.txt' 
+            filename = str(Path.cwd() / 'databases' / filename)
             with open(filename, 'w') as schedule_file:
                 schedule_file.write(current_schedule)
             with open(filename, 'rb') as schedule_file:
